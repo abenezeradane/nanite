@@ -10,7 +10,7 @@ Nanite is the application implementation I use in [nano](https://github.com/nano
 - [ ] Simple Shader Rendering
 
 #### Planned Features
-- [ ] More Robust Input Handling
+- [ ] Robust Input Handling w/ Input Mapping
 
 ### Usage
 Nanite is a single-header library, so just drop `nanite.h` into your project to get started/.
