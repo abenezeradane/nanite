@@ -1,6 +1,7 @@
 # Nanite
 > A minimal SDL2 and OpenGL implementation
-This is the application implementation I use in nano, a custom game engine I wrote from scratch in C.
+
+Nanite is the application implementation I use in nano, a custom game engine I wrote from scratch in C.
 
 ### Features
 #### Currently Implemented
