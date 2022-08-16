@@ -31,7 +31,6 @@ int WinMain(int argc, char const *argv[]) {
   app.load = load;
   app.step = frame;
   app.vsync = true;
-  app.title = "Darkness";
 
   start(&app);
   return 0;
