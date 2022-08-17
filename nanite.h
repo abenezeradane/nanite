@@ -52,6 +52,9 @@ double time(void);
 // Update fullscreen.
 void fullcreen(Application* app);
 
+// Update cursor.
+void cursor(Application* app);
+
 // Initializes the application.
 void start(Application* app);
 
@@ -79,6 +82,15 @@ double time(void) {
 void fullscreen(Application* app) {
   app -> fullscreen = !(app -> fullscreen);
   SDL_SetWindowFullscreen(app -> window, app -> fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+}
+
+/**
+ * @brief Update cursor.
+ * @param app Application.
+ */
+void cursor(Application* app) {
+  app -> cursor = !(app -> cursor);
+  SDL_ShowCursor(app -> cursor);
 }
 
 /**
