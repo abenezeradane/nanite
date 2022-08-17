@@ -1,6 +1,12 @@
 #ifndef MISCELLANEOUS_H
 #define MISCELLANEOUS_H
 
+#define GLEW_STATIC
+#define NO_SDL_GLEXT
+#include <GL/glew.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,14 +23,112 @@ void error(char* msg) {
 
 #endif      // MISCELLANEOUS_H
 
+#ifndef INPUT_INCLUDE
+#define INPUT_INCLUDE
+
+/**
+ * @brief Application input key enumeration.
+ */
+typedef enum KEY {
+  KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_F, KEY_G,
+  KEY_H, KEY_I, KEY_J, KEY_K, KEY_L, KEY_M, KEY_N,
+  KEY_O, KEY_P, KEY_Q, KEY_R, KEY_S, KEY_T, KEY_U,
+  KEY_V, KEY_W, KEY_X, KEY_Y, KEY_Z,
+
+  KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6,
+  KEY_7, KEY_8, KEY_9,
+
+  KEY_ESCAPE, KEY_RETURN, KEY_LCTRL, KEY_LALT,
+  KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN,
+  KEY_LSHIFT, KEY_SPACE,
+
+  KEY_MAX
+} KEY;
+
+/**
+ * @brief Application input key state enumeration.
+ */
+typedef enum KEYSTATE {
+  KEY_STATE_RELEASED,
+  KEY_STATE_PRESSED,
+  KEY_STATE_HELD,
+} KEYSTATE;
+
+// TODO: Add support for mouse buttons.
+// TODO: Add support for mouse wheel.
+
+static KEYSTATE keybinds[KEY_MAX];
+
+// Check if a key is pressed.
+static bool keypress(KEY key);
+
+// Update key states
+static void update(uint8_t key, KEYSTATE* state);
+
+// Input handler
+static void input(void);
+
+#endif    // INPUT_INCLUDE
+
+#ifdef INPUT_IMPLEMENTATION
+#undef INPUT_IMPLEMENTATION
+
+/**
+ * @brief Check if a key is pressed.
+ * @param key SDL key
+ */
+bool keypress(KEY key) {
+  return keybinds[key] > KEY_STATE_RELEASED;
+}
+
+/**
+ * @brief Update key states.
+ * @param key SDL key
+ */
+void update(uint8_t keyboard, KEYSTATE* state) {
+  if (keyboard) {
+    if (*state > KEY_STATE_RELEASED)
+      *state = KEY_STATE_HELD;
+    else
+      *state = KEY_STATE_PRESSED;
+  } else
+    *state = KEY_STATE_RELEASED;
+}
+
+/**
+ * @brief Input handler
+ */
+void input(void) {
+  const uint8_t* state = SDL_GetKeyboardState(NULL);
+
+  register KEY key;
+  for (key = KEY_A; key < KEY_MAX; key++) {
+    if (key >= KEY_A && key <= KEY_Z)
+      update(state[SDL_SCANCODE_A + key], &keybinds[key]);
+    else if (key >= KEY_0 && key <= KEY_9)
+      update(state[SDL_SCANCODE_0 + key - KEY_0], &keybinds[key]);
+    else {
+      switch (key) {
+        case KEY_ESCAPE: update(state[SDL_SCANCODE_ESCAPE], &keybinds[key]); break;
+        case KEY_RETURN: update(state[SDL_SCANCODE_RETURN], &keybinds[key]); break;
+        case KEY_LCTRL: update(state[SDL_SCANCODE_LCTRL], &keybinds[key]); break;
+        case KEY_LALT: update(state[SDL_SCANCODE_LALT], &keybinds[key]); break;
+        case KEY_LEFT: update(state[SDL_SCANCODE_LEFT], &keybinds[key]); break;
+        case KEY_RIGHT: update(state[SDL_SCANCODE_RIGHT], &keybinds[key]); break;
+        case KEY_UP: update(state[SDL_SCANCODE_UP], &keybinds[key]); break;
+        case KEY_DOWN: update(state[SDL_SCANCODE_DOWN], &keybinds[key]); break;
+        case KEY_LSHIFT: update(state[SDL_SCANCODE_LSHIFT], &keybinds[key]); break;
+        case KEY_SPACE: update(state[SDL_SCANCODE_SPACE], &keybinds[key]); break;
+        default: break;
+      }
+    }
+  }
+}
+
+#endif    // INPUT_IMPLEMENTATION
+
 #ifndef APPLICATION_INCLUDE
 #define APPLICATION_INCLUDE
-
-#define GLEW_STATIC
-#define NO_SDL_GLEXT
-#include <GL/glew.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
 
 /**
  * @brief Application struct.
@@ -158,6 +262,7 @@ void start(Application* app) {
           app -> quit = true;
       }
 
+      input();
       if (app -> step)
         app -> step();
     }
