@@ -127,6 +127,55 @@ void input(void) {
 
 #endif    // INPUT_IMPLEMENTATION
 
+#ifndef RENDER_INCLUDE
+#define RENDER_INCLUDE
+
+// Initialize rendering system
+void initialize(void);
+
+// Render frame
+void render(SDL_Window* window);
+
+#endif    // RENDER_INCLUDE
+
+#ifdef RENDER_IMPLEMENTATION
+#undef RENDER_IMPLEMENTATION
+
+/**
+ * @brief Initialize rendering system.
+ */
+void initialize(void) {
+  glDepthFunc(GL_LESS);
+  glEnable(GL_DEPTH_TEST);
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+/**
+ * @brief Render frame.
+ * @param window Window to render to.
+ */
+void render(SDL_Window* window) {
+  // Verify that the window isn't null.
+  if (!window)
+    error("Window is null!");
+
+  // Clear the screen.
+  glClearColor(0.08f, 0.10f, 0.10f, 1.00f);
+  glClearDepth(1.00f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // Render the scene.
+  // TODO: Render entities after ECS is implemented.
+
+  // Swap the buffers.
+  SDL_GL_SwapWindow(window);
+  SDL_Delay(1);
+}
+
+#endif    // RENDER_IMPLEMENTATION
+
 #ifndef APPLICATION_INCLUDE
 #define APPLICATION_INCLUDE
 
@@ -265,6 +314,8 @@ void start(Application* app) {
       input();
       if (app -> step)
         app -> step();
+
+      render(app -> window);
     }
   }
 }
