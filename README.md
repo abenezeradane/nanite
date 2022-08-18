@@ -30,7 +30,6 @@ static Application app;
 int WinMain(int argc, char const *argv[]) {
   app.load = load;
   app.step = frame;
-  app.vsync = true;
 
   start(&app);
   return 0;
