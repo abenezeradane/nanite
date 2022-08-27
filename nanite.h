@@ -84,19 +84,79 @@ void run(Application* app) {
   if (!app)
     error("Application is null.");
 
+  // Set application properties.
+  if (!(app -> title))
+    app -> title = "nanite";
+  if (!(app -> x))
+    app -> x = SDL_WINDOWPOS_CENTERED;
+  if (!(app -> y))
+    app -> y = SDL_WINDOWPOS_CENTERED;
+  if (!(app -> width))
+    app -> width = 640;
+  if (!(app -> height))
+    app -> height = 480;
+  if (!(app -> fullscreen))
+    app -> fullscreen = false;
+  if (!(app -> vsync))
+    app -> vsync = true;
+
   printf("\x1b[5m\x1B[32mInitializing\x1B[0m: \"%s\"\n", app -> title);
 
-  // ...
+  // Initialize SDL.
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE) != 0)
+    error(strcat("SDL2 Failed to Initialize!\n> ", SDL_GetError()));
+
+  // Set OpenGL attributes.
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+
+  // Initialize the window.
+  app -> window = SDL_CreateWindow(
+    app -> title,
+    app -> x, app -> y,
+    app -> width, app -> height,
+    SDL_WINDOW_OPENGL | (app -> fullscreen ? SDL_WINDOW_FULLSCREEN : 0)
+  );
+
+  // Check if the window failed to initialize.
+  if (!app -> window)
+    error(strcat("SDL2 Failed to Create Window!\n> ", SDL_GetError()));
+
+  // Initialize the OpenGL context.
+  app -> context = SDL_GL_CreateContext(app -> window);
+  if (!app -> context)
+    error(strcat("SDL2 Failed to Create OpenGL Context!\n> ", SDL_GetError()));
+
+  // Initialize GLEW.
+  glewExperimental = GL_TRUE;
+  if (glewInit() != GLEW_OK)
+    error(strcat("GLEW Failed to Initialize!\n> ", glewGetErrorString(glewInit())));
+
+  // Set the vsync.
+  if (app -> vsync)
+    SDL_GL_SetSwapInterval(1);
+  else
+    SDL_GL_SetSwapInterval(0);
+
+  // Call the load function.
+  if (app -> load)
+    app -> load();
 
   printf("\x1b[1A\x1b[0K\x1b[5m\x1B[32mInitialized\x1B[0m: \"%s\"\n", app -> title);
 
   // ...
 
-  printf("\x1b[5m\x1B[32mRunning\x1B[0m: \"%s\"\n", app -> title);
+  // printf("\x1b[5m\x1B[32mRunning\x1B[0m: \"%s\"\n", app -> title);
 
   // ...
 
-  close(app);
+  // close(app);
 }
 
 /**
@@ -106,14 +166,14 @@ void run(Application* app) {
  */
 void close(Application* app) {
   // Check if the application is null.
-  if (!app)
-    error("Application is null.");
+  // if (!app)
+  //   error("Application is null.");
 
-  printf("\x1b[5m\x1B[32mClosing\x1B[0m: \"%s\"\n", app -> title);
+  // printf("\x1b[5m\x1B[32mClosing\x1B[0m: \"%s\"\n", app -> title);
 
   // ...
 
-  printf("\x1b[1A\x1b[0K\x1b[5m\x1B[32mClosed\x1B[0m: \"%s\"\n", app -> title);
+  // printf("\x1b[1A\x1b[0K\x1b[5m\x1B[32mClosed\x1B[0m: \"%s\"\n", app -> title);
   // exit(EXIT_SUCCESS);
 }
 
