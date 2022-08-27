@@ -88,7 +88,7 @@ void run(Application* app) {
 
   // ...
 
-  printf("\x1b[5m\x1B[32mInitialized\x1B[0m: \"%s\"\n", app -> title);
+  printf("\x1b[1A\x1b[0K\x1b[5m\x1B[32mInitialized\x1B[0m: \"%s\"\n", app -> title);
 
   // ...
 
@@ -113,7 +113,7 @@ void close(Application* app) {
 
   // ...
 
-  printf("\x1b[5m\x1B[32mClosed\x1B[0m: \"%s\"\n", app -> title);
+  printf("\x1b[1A\x1b[0K\x1b[5m\x1B[32mClosed\x1B[0m: \"%s\"\n", app -> title);
   // exit(EXIT_SUCCESS);
 }
 
