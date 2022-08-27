@@ -1,0 +1,8 @@
+# Build System
+.vscode/
+bin/
+src/
+build.bat
+
+# Tests
+test/

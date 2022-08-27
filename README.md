@@ -1,15 +1,16 @@
 ## nanite
-> A minimal SDL2 and OpenGL implementation
+> A minimal, single-header, SDL2 and OpenGL implementation
 
-**nanite** is the application implementation I use in [nano](https://github.com/PB020/nano), a custom game engine I wrote from scratch in C.
+**nanite** is an SDL2 and OpenGL application implementation I use in **nano**, a custom game engine I wrote from scratch in C.
 
 ### Features
 #### Currently Implemented
 - [x] Window Creation
 - [x] Basic Input Handling
-- [ ] Simple Shader Rendering
 
 #### Planned Features
+- [ ] Simple Shader Rendering
+- [ ] Simple Texture Rendering
 - [ ] Robust Input Handling w/ Input Mapping
 
 ### Usage
@@ -18,9 +19,7 @@ Nanite is a single-header library, so just drop `nanite.h` into your project to 
 /**
  * Simple Implementation
  */
-#define INPUT_IMPLEMENTATION
-#define RENDER_IMPLEMENTATION
-#define APPLICATION_IMPLEMENTATION
+#define FULL_NANITE_IMPLEMENTATION
 #include "nanite.h"
 
 static void load(void);
@@ -42,9 +41,6 @@ static void load(void) {
 static void frame(void) {
   if (keypress(KEY_ESCAPE))
     app.quit = true;
-
-  if (keypress(KEY_F))
-    fullscreen(&app);
 }
 ```
 
