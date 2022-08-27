@@ -47,6 +47,7 @@ typedef struct Application {
 
   int x, y;               // The x and y position of the window.
   int width, height;      // The width and height of the window.
+  int fps;                // The frames per second.
 
   bool running;           // Whether the application is running.
   bool fullscreen, vsync; // Whether the window is fullscreen and vsync is enabled.
@@ -54,6 +55,16 @@ typedef struct Application {
   void (*load)(void);     // The function to call when the application is loaded.
   void (*step)(void);     // The function to call when the application is stepped.
 } Application;
+
+// Time variables.
+static float now;
+static float last;
+static float delta;
+
+/**
+ * @brief Gets the time in milliseconds since the application started.
+ */
+static double time(void);
 
 /**
  * @brief Initializes the application.
@@ -73,6 +84,13 @@ void close(Application* app);
 
 #ifdef NANITE_APPLICATION_IMPLEMENTATION
 #undef NANITE_APPLICATION_IMPLEMENTATION
+
+/**
+ * @brief Gets the time in milliseconds since the application started.
+ */
+static double time(void) {
+  return (double) SDL_GetTicks();
+}
 
 /**
  * @brief Initializes the application.
@@ -95,6 +113,8 @@ void run(Application* app) {
     app -> width = 640;
   if (!(app -> height))
     app -> height = 480;
+  if (!(app -> fps))
+    app -> fps = 60;
   if (!(app -> fullscreen))
     app -> fullscreen = false;
   if (!(app -> vsync))
@@ -150,13 +170,42 @@ void run(Application* app) {
 
   printf("\x1b[1A\x1b[0K\x1b[5m\x1B[32mInitialized\x1B[0m: \"%s\"\n", app -> title);
 
-  // ...
+  printf("\x1b[5m\x1B[32mRunning\x1B[0m: \"%s\"\n", app -> title);
 
-  // printf("\x1b[5m\x1B[32mRunning\x1B[0m: \"%s\"\n", app -> title);
+  // Main loop.
+  last = time();
+  app -> running = true;
+  while (app -> running) {
 
-  // ...
+    // Get the time.
+    now = time();
+    delta = now - last;
 
-  // close(app);
+    // Wait for the next frame.
+    if (delta > (1000.0 / app -> fps)) {
+      // Poll for events.
+      SDL_Event event;
+      if (SDL_PollEvent(&event)) {
+        // Check for quit.
+        if (event.type == SDL_QUIT)
+          app -> running = false;
+      }
+
+      // Call the step function.
+      if (app -> step)
+        app -> step();
+
+      // Swap the buffers.
+      SDL_GL_SwapWindow(app -> window);
+
+      // Update the last time.
+      last = now;
+    }
+    else
+      SDL_Delay((1000.0 / app -> fps) - delta);
+  }
+
+  close(app);
 }
 
 /**
@@ -166,14 +215,19 @@ void run(Application* app) {
  */
 void close(Application* app) {
   // Check if the application is null.
-  // if (!app)
-  //   error("Application is null.");
+  if (!app)
+    error("Application is null.");
 
-  // printf("\x1b[5m\x1B[32mClosing\x1B[0m: \"%s\"\n", app -> title);
+  printf("\x1b[5m\x1B[32mClosing\x1B[0m: \"%s\"\n", app -> title);
 
-  // ...
+  // Free the window.
+  SDL_DestroyWindow(app -> window);
+  app -> window = NULL;
+  SDL_GL_DeleteContext(app -> context);
+  app -> context = NULL;
+  SDL_Quit();
 
-  // printf("\x1b[1A\x1b[0K\x1b[5m\x1B[32mClosed\x1B[0m: \"%s\"\n", app -> title);
+  printf("\x1b[1A\x1b[0K\x1b[5m\x1B[32mClosed\x1B[0m: \"%s\"\n", app -> title);
   // exit(EXIT_SUCCESS);
 }
 
