@@ -14,7 +14,7 @@
 - [ ] Robust Input Handling w/ Input Mapping
 - [ ] Robust Texture Rendering
 - [ ] Robust Shader Rendering
-- [ ] GLFW and Vulkan Support
+- [ ] GLFW and SFML Support
 
 ### Usage
 Nanite is a single-header library, so just drop `nanite.h` into your project to get started/.
