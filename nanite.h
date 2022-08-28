@@ -351,7 +351,7 @@ void close(Application* app) {
   SDL_Quit();
 
   printf("\x1b[1A\x1b[0K\x1b[5m\x1B[32mClosed\x1B[0m: \"%s\"\n", app -> title);
-  // exit(EXIT_SUCCESS);    // TODO: Enable this when debugging is done.
+  exit(EXIT_SUCCESS);
 }
 
 #endif // NANITE_APPLICATION_IMPLEMENTATION
