@@ -1,5 +1,5 @@
 ## nanite
-> A minimal, single-header, SDL2 and OpenGL implementation
+> A minimal, single-header, implementation for window creation, input handling and graphics rendering
 
 **nanite** is an SDL2 and OpenGL application implementation I use whenever I am working with SDL2.
 
