@@ -7,7 +7,7 @@
 #### Currently Implemented
 - [x] Window Creation
 - [x] Basic Input Handling
-- [ ] Simple Shader Rendering
+- [x] Simple Shader Rendering
 
 #### Planned Features
 - [ ] Simple Texture Rendering
