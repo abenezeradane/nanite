@@ -43,7 +43,7 @@ static void load(void) {
 
 static void frame(void) {
   if (keypress(KEY_ESCAPE))
-    app.quit = true;
+    app.running = true;
 }
 ```
 
