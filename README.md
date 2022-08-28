@@ -29,7 +29,7 @@ static void load(void);
 static void frame(void);
 
 static Application app;
-int WinMain(int argc, char const *argv[]) {
+int WinMain(int argc, const char *argv[]) {
   app.load = load;
   app.step = frame;
 
