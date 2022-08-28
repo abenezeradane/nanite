@@ -12,6 +12,31 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define READER_BUFFSIZE 1024
+#define MAX_CONTENT_SIZE 1048576
+
+/**
+ * @brief File loading function.
+ * 
+ * @param filename The filename to load.
+ * @return char* The file contents.
+ */
+char* readfile(char* filename) {
+  FILE* file = fopen(filename, "r");
+  if (!file)
+    return NULL;
+
+  int flag = 0;
+  char* shader = (char*) malloc(MAX_CONTENT_SIZE);
+  char* buffer = (char*) malloc(READER_BUFFSIZE);
+  while (fgets(buffer, READER_BUFFSIZE, file) != NULL)
+    strcat(shader, buffer);
+
+  free(buffer);
+  fclose(file);
+  return shader;
+}
+
 /**
  * @brief Prints an error message and exits the program.
  * 
@@ -33,7 +58,7 @@ void error(char* msg) {
     #undef NANITE_INPUT_IMPLEMENTATION    
   #endif
 
-  #ifdef NO_NANITE_RENDERING
+  #ifdef NO_NANITE_RENDER
     #undef NANITE_RENDERING_IMPLEMENTATION
   #endif
 
@@ -161,6 +186,315 @@ static void processInput(void) {
 
 #endif // NANITE_INPUT_IMPLEMENTATION
 
+#ifndef NANITE_RENDER_INCLUDE
+#define NANITE_RENDER_INCLUDE
+
+#define MAX_SHADERS 16
+
+/**
+ * @brief The shader structure.
+ */
+typedef struct Shader {
+  GLuint vao;         // Vertex array object.
+  GLuint vbo;         // Vertex buffer object.
+  GLuint ebo;         // Element buffer object.
+  GLuint program;     // The shader program.
+  float position[3];  // The position of the shader.
+} Shader;
+
+// Shader variables.
+static int shaderCount = 0;         // The number of shaders.
+static Shader shaders[MAX_SHADERS]; // The shader array.
+
+float vertices[] = {                // The vertices of the triangle.
+   0.25f,  0.25f, 0.00f,  // top right
+   0.25f, -0.25f, 0.00f,  // bottom right
+  -0.25f, -0.25f, 0.00f,  // bottom left
+  -0.25f,  0.25f, 0.00f   // top left 
+};
+unsigned int indices[] = {        // The indices of the triangle.
+  0, 1, 3,  // first Triangle
+  1, 2, 3   // second Triangle
+};
+
+/**
+ * @brief Initializes the OpenGL context.
+ */
+static void initGL(void);
+
+/**
+ * @brief Creates a shader.
+ * 
+ * @param vertFilename The vertex shader file.
+ * @param fragFilename The fragment shader file.
+ * @param x The x position of the shader.
+ * @param y The y position of the shader.
+ * @param z The z position of the shader.
+ * @return The index of the shader in the shader array.
+ */
+int createShader(char* vertFilename, char* fragFilename, float x, float y, float z);
+
+/**
+ * @brief Gets the position of a shader.
+ * 
+ * @param index The index of the shader.
+ */
+float* getPosition(int index);
+
+/**
+ * @brief Updates the shader position.
+ * 
+ * @param index The index of the shader in the shader array.
+ * @param x The x position of the shader.
+ * @param y The y position of the shader.
+ * @param z The z position of the shader.
+ */
+void updatePosition(int shaderIndex, float x, float y, float z);
+
+/**
+ * @brief Renders the scene.
+ * 
+ * @param window The window to render to.
+ */
+static void render(SDL_Window* window);
+
+/**
+ * @brief Destroys a shader.
+ * 
+ * @param shader The shader to destroy.
+ */
+static void destroyShader(Shader* shader);
+
+#endif // NANITE_RENDER_INCLUDE
+
+#ifdef NANITE_RENDER_IMPLEMENTATION
+
+/**
+ * @brief Initializes the OpenGL context.
+ */
+static void initGL(void) {
+  // Initialize GLEW.
+  glewExperimental = GL_TRUE;
+  GLenum glewError = glewInit();
+  if (glewError != GLEW_OK) {
+    error(strcat("GLEW Failed to Initialize!\n> ", glewGetErrorString(glewInit())));
+  }
+}
+
+/**
+ * @brief Creates a shader.
+ * 
+ * @param vertFilename The vertex shader file.
+ * @param fragFilename The fragment shader file.
+ * @param x The x position of the shader.
+ * @param y The y position of the shader.
+ * @param z The z position of the shader.
+ * @return The index of the shader in the shader array.
+ */
+int createShader(char* vertFilename, char* fragFilename, float x, float y, float z) {
+  // Check if there is room for another shader.
+  if (shaderCount >= MAX_SHADERS)
+    error("Maximum number of shaders reached!");
+  
+  // Create the shader pointer.
+  Shader* shader = &shaders[shaderCount];
+  if (shader == NULL)
+    error("Failed to allocate memory for shader!");
+  
+  // Set the shader position.
+  shader -> position[0] = x;
+  shader -> position[1] = y;
+  shader -> position[2] = z;
+
+  // Create the vertex array object.
+  glGenVertexArrays(1, &(shader -> vao));
+  if (shader -> vao == 0)
+    error("Failed to create vertex array object!");
+
+  // Create the vertex buffer object.
+  glGenBuffers(1, &(shader -> vbo));
+  if (shader -> vbo == 0)
+    error("Failed to create vertex buffer object!");
+
+  // Create the element buffer object.
+  glGenBuffers(1, &(shader -> ebo));
+  if (shader -> ebo == 0)
+    error("Failed to create element buffer object!");
+
+  // Bind the vertex array object.
+  glBindVertexArray(shader -> vao);
+
+  // Bind the vertex buffer object.
+  glBindBuffer(GL_ARRAY_BUFFER, shader -> vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to bind vertex buffer object!");
+
+  // Bind the element buffer object.
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shader -> ebo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to bind element buffer object!");
+
+  // Set the vertex attribute pointers.
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+
+  // Create the vertex shader.
+  GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
+  if (vertShader == 0)
+    error("Failed to create vertex shader!");
+
+  // Load the vertex shader.
+  char* vertSource = readfile(vertFilename);
+  if (vertSource == NULL)
+    error("Failed to read vertex shader file!");
+
+  // Compile the vertex shader.
+  glShaderSource(vertShader, 1, (const char**) &vertSource, NULL);
+  glCompileShader(vertShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to compile vertex shader!");
+
+  // Create the fragment shader.
+  GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+  if (fragShader == 0)
+    error("Failed to create fragment shader!");
+
+  // Load the fragment shader.
+  char* fragSource = readfile(fragFilename);
+  if (fragSource == NULL)
+    error("Failed to read fragment shader file!");
+
+  // Compile the fragment shader.
+  glShaderSource(fragShader, 1, (const char**) &fragSource, NULL);
+  glCompileShader(fragShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to compile fragment shader!");
+
+  // Create the shader program.
+  shader -> program = glCreateProgram();
+  if (shader -> program == 0)
+    error("Failed to create shader program!");
+
+  // Attach the vertex shader.
+  glAttachShader(shader -> program, vertShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to attach vertex shader!");
+
+  // Attach the fragment shader.
+  glAttachShader(shader -> program, fragShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to attach fragment shader!");
+
+  // Link the shader program.
+  glLinkProgram(shader -> program);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to link shader program!");
+
+  // Delete the vertex shader.
+  glDeleteShader(vertShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to delete vertex shader!");
+
+  // Delete the fragment shader.
+  glDeleteShader(fragShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to delete fragment shader!");
+
+  // Increment the shader count.
+  shaderCount++;
+
+  // Unbind the vertex buffer object.
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to unbind vertex buffer object!");
+
+  // Unbind the vertex array object.
+  glBindVertexArray(0);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to unbind vertex array object!");
+
+  // return the index of the shader in the shader array
+  return shaderCount - 1;
+}
+
+/**
+ * @brief Gets the position of a shader.
+ * 
+ * @param index The index of the shader.
+ */
+float* getPosition(int index) {
+  return shaders[index].position;
+}
+
+/**
+ * @brief Updates the shader position.
+ * 
+ * @param index The index of the shader in the shader array.
+ * @param x The x position of the shader.
+ * @param y The y position of the shader.
+ * @param z The z position of the shader.
+ */
+void updatePosition(int index, float x, float y, float z) {
+  // Check if the index is valid.
+  if (index >= shaderCount)
+    error("Invalid shader index!");
+  
+  // Update the shader position.
+  shaders[index].position[0] += x;
+  shaders[index].position[1] += y;
+  shaders[index].position[2] += z;
+}
+
+/**
+ * @brief Renders the scene.
+ * 
+ * @param window The window to render to.
+ */
+static void render(SDL_Window* window) {
+  // Verify that the window isn't null.
+  if (!window)
+    error("Window pointer is null!");
+
+  // Clear the screen.
+  glClearDepth(1.00f);
+  glClearColor(0.08f, 0.10f, 0.10f, 1.00f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // Render the scene.
+  register int entity = 0;
+  for (entity = 0; entity < shaderCount; entity++) {
+    // Use the shader program.
+    glUseProgram(shaders[entity].program);
+    if (glGetError() != GL_NO_ERROR)
+      error("Failed to use shader program!");
+
+    // Set the shader position.
+    glUniform3fv(glGetUniformLocation(shaders[entity].program, "position"), 1, getPosition(entity));
+    if (glGetError() != GL_NO_ERROR)
+      error("Failed to set shader position!");
+
+    // TODO: Figure out despite the position being updated, the drawn shader is not moving.
+    
+    // Bind the vertex array object.
+    glBindVertexArray(shaders[entity].vao);
+    if (glGetError() != GL_NO_ERROR)
+      error("Failed to bind vertex array object!");
+    
+    // Draw the triangles.
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    if (glGetError() != GL_NO_ERROR)
+      error("Failed to draw elements!");
+  }
+
+  // Swap the buffers.
+  SDL_GL_SwapWindow(window);
+  SDL_Delay(1);
+}
+
+#endif // NANITE_RENDER_IMPLEMENTATION
+
 #ifndef NANITE_WINDOW_INCLUDE
 #define NANITE_WINDOW_INCLUDE
 
@@ -280,9 +614,9 @@ void run(Application* app) {
     error(strcat("SDL2 Failed to Create OpenGL Context!\n> ", SDL_GetError()));
 
   // Initialize GLEW.
-  glewExperimental = GL_TRUE;
-  if (glewInit() != GLEW_OK)
-    error(strcat("GLEW Failed to Initialize!\n> ", glewGetErrorString(glewInit())));
+  #ifndef NO_NANITE_RENDER
+    initGL();
+  #endif
 
   // Set the vsync.
   if (app -> vsync)
@@ -327,7 +661,11 @@ void run(Application* app) {
         app -> step();
 
       // Swap the buffers.
-      SDL_GL_SwapWindow(app -> window);
+      #ifndef NO_NANITE_RENDER
+        render(app -> window);
+      #else
+        SDL_GL_SwapWindow(app -> window);
+      #endif
 
       // Update the last time.
       last = now;
