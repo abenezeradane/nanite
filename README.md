@@ -11,10 +11,12 @@
 #### Planned Features
 - [ ] Simple Shader Rendering
 - [ ] Simple Texture Rendering
+- [ ] Window Management (Resize, Maximize, Minimize, etc)
 - [ ] Robust Input Handling w/ Input Mapping
 - [ ] Robust Texture Rendering
 - [ ] Robust Shader Rendering
 - [ ] GLFW and SFML Support
+- [ ] Vulkan, Metal, and D3D12 Support
 
 ### Usage
 Nanite is a single-header library, so just drop `nanite.h` into your project to get started/.
