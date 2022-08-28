@@ -25,12 +25,20 @@ void error(char* msg) {
 #endif // MISCELLANEOUS_H
 
 #ifdef NANITE_IMPLEMENTATION
-  #ifndef NANITE_INPUT_IMPLEMENTATION
   #define NANITE_INPUT_IMPLEMENTATION
+  #define NANITE_RENDER_IMPLEMENTATION
+  #define NANITE_WINDOW_IMPLEMENTATION
+
+  #ifdef NO_NANITE_INPUT
+    #undef NANITE_INPUT_IMPLEMENTATION    
   #endif
 
-  #ifndef NANITE_APPLICATION_IMPLEMENTATION
-  #define NANITE_APPLICATION_IMPLEMENTATION
+  #ifdef NO_NANITE_RENDERING
+    #undef NANITE_RENDERING_IMPLEMENTATION
+  #endif
+
+  #ifdef NO_NANITE_WINDOW
+    #undef NANITE_WINDOW_IMPLEMENTATION
   #endif
 #endif // NANITE_IMPLEMENTATION
 
@@ -98,7 +106,6 @@ static void processInput(void);
 #endif // NANITE_INPUT_INCLUDE
 
 #ifdef NANITE_INPUT_IMPLEMENTATION
-#undef NANITE_INPUT_IMPLEMENTATION
 
 /**
  * @brief Check if a key is pressed.
@@ -154,8 +161,8 @@ static void processInput(void) {
 
 #endif // NANITE_INPUT_IMPLEMENTATION
 
-#ifndef NANITE_APPLICATION_INCLUDE
-#define NANITE_APPLICATION_INCLUDE
+#ifndef NANITE_WINDOW_INCLUDE
+#define NANITE_WINDOW_INCLUDE
 
 /**
  * @brief The application structure.
@@ -200,10 +207,9 @@ void run(Application* app);
  */
 void close(Application* app);
 
-#endif // NANITE_APPLICATION_INCLUDE
+#endif // NANITE_WINDOW_INCLUDE
 
-#ifdef NANITE_APPLICATION_IMPLEMENTATION
-#undef NANITE_APPLICATION_IMPLEMENTATION
+#ifdef NANITE_WINDOW_IMPLEMENTATION
 
 /**
  * @brief Gets the time in milliseconds since the application started.
@@ -312,7 +318,9 @@ void run(Application* app) {
       }
 
       // Process input.
-      processInput();
+      #ifndef NO_NANITE_INPUT
+        processInput();
+      #endif
 
       // Call the step function.
       if (app -> step)
@@ -354,4 +362,4 @@ void close(Application* app) {
   exit(EXIT_SUCCESS);
 }
 
-#endif // NANITE_APPLICATION_IMPLEMENTATION
+#endif // NANITE_WINDOW_IMPLEMENTATION
