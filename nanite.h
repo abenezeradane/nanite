@@ -184,9 +184,9 @@ typedef struct Application {
 } Application;
 
 // Time variables.
-static float now;
-static float last;
-static float delta;
+static float now;   // The current time.
+static float last;  // The last time.
+static float delta; // The time between the current and last frame.
 
 /**
  * @brief Gets the time in milliseconds since the application started.
