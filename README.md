@@ -6,9 +6,9 @@
 ### Features
 #### Currently Implemented
 - [x] Window Creation
+- [x] Basic Input Handling
 
 #### Planned Features
-- [ ] Basic Input Handling
 - [ ] Simple Shader Rendering
 - [ ] Simple Texture Rendering
 - [ ] Robust Input Handling w/ Input Mapping

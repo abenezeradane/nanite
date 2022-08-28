@@ -37,10 +37,120 @@ void error(char* msg) {
 #ifndef NANITE_INPUT_INCLUDE
 #define NANITE_INPUT_INCLUDE
 
+/**
+ * @brief Key enumeration.
+ */
+// TODO: Add support for mouse and joystick input.
+typedef enum KEY {
+  KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_F, KEY_G,
+  KEY_H, KEY_I, KEY_J, KEY_K, KEY_L, KEY_M, KEY_N,
+  KEY_O, KEY_P, KEY_Q, KEY_R, KEY_S, KEY_T, KEY_U,
+  KEY_V, KEY_W, KEY_X, KEY_Y, KEY_Z,
+
+  KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6,
+  KEY_7, KEY_8, KEY_9,
+
+  KEY_ESCAPE, KEY_RETURN, KEY_LCTRL, KEY_LALT,
+  KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN,
+  KEY_LSHIFT, KEY_SPACE,
+
+  KEY_MAX
+} KEY;
+
+/**
+ * @brief Key state enumeration.
+ */
+typedef enum KEY_STATE {
+  KEY_STATE_RELEASED,
+  KEY_STATE_PRESSED,
+  KEY_STATE_HELD
+} KEY_STATE;
+
+// Key state array.
+static KEY_STATE keystate[KEY_MAX];
+
+/**
+ * @brief Check if a key is pressed.
+ * 
+ * @param key The key to check.
+ * @return true if the key is pressed.
+ */
+bool keypress(KEY key);
+
+/**
+ * @brief Initializes the key state array.
+ */
+static void initKeystates(void);
+
+/**
+ * @brief Updates the key state array.
+ * 
+ * @param keyboard The SDL keyboard event.
+ * @param state The state of the key.
+ */
+static void updateKeystates(uint8_t keyboard, KEY_STATE* state);
+
+/**
+ * @brief Processes the SDL keyboard event.
+ */
+static void processInput(void);
+
 #endif // NANITE_INPUT_INCLUDE
 
 #ifdef NANITE_INPUT_IMPLEMENTATION
 #undef NANITE_INPUT_IMPLEMENTATION
+
+/**
+ * @brief Check if a key is pressed.
+ * 
+ * @param key The key to check.
+ * @return true if the key is pressed.
+ */
+bool keypress(KEY key) {
+  return keystate[key] != KEY_STATE_RELEASED;
+}
+
+/**
+ * @brief Initializes the key state array.
+ */
+static void initKeystates(void) {
+  for (int i = 0; i < KEY_MAX; i++) {
+    keystate[i] = KEY_STATE_RELEASED;
+  }
+}
+
+/**
+ * @brief Updates the key state array.
+ * 
+ * @param keyboard The SDL keyboard event.
+ * @param state The state of the key.
+ */
+static void updateKeystates(uint8_t keyboard, KEY_STATE* state) {
+  if (keyboard) {
+    if (*state > KEY_STATE_RELEASED)
+      *state = KEY_STATE_HELD;
+    else
+      *state = KEY_STATE_PRESSED;
+  } else
+    *state = KEY_STATE_RELEASED;
+}
+
+/**
+ * @brief Processes the SDL keyboard event.
+ */
+static void processInput(void) {
+  const uint8_t* state = SDL_GetKeyboardState(NULL);
+
+  // TODO: Update keystate array using configurable key mappings.
+  updateKeystates(state[SDL_SCANCODE_W], &keystate[KEY_W]);
+  updateKeystates(state[SDL_SCANCODE_A], &keystate[KEY_A]);
+  updateKeystates(state[SDL_SCANCODE_S], &keystate[KEY_S]);
+  updateKeystates(state[SDL_SCANCODE_D], &keystate[KEY_D]);
+
+  updateKeystates(state[SDL_SCANCODE_ESCAPE], &keystate[KEY_ESCAPE]);
+  updateKeystates(state[SDL_SCANCODE_LSHIFT], &keystate[KEY_LSHIFT]);
+  updateKeystates(state[SDL_SCANCODE_SPACE], &keystate[KEY_SPACE]);
+}
 
 #endif // NANITE_INPUT_IMPLEMENTATION
 
@@ -200,6 +310,9 @@ void run(Application* app) {
         if (event.type == SDL_QUIT)
           app -> running = false;
       }
+
+      // Process input.
+      processInput();
 
       // Call the step function.
       if (app -> step)
