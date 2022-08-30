@@ -49,6 +49,132 @@ void error(char* msg) {
 
 #endif // MISCELLANEOUS_H
 
+#ifndef QUEUE_IMPLEMENTATION
+#define QUEUE_IMPLEMENTATION
+
+#define QUEUE_MAX 2048
+
+/**
+ * @brief The queue structure
+ */
+typedef struct Queue {
+  void** elements;
+  unsigned int front, rear;
+} Queue;
+
+/**
+ * @brief Create an empty queue
+ * 
+ * @return A queue pointer if successful, NULL if it isn't
+ */
+Queue* createQueue(void) {
+  // Create a queue pointer
+  Queue* queue = (Queue*) malloc(sizeof(Queue));
+
+  // Set the queue's front and rear to equal -1
+  queue -> front = queue -> rear = -1;
+
+  // Set every element in the queue to NULL
+  queue -> elements = (void*) malloc(sizeof(void*) * QUEUE_MAX);
+
+  // Return the empty queue
+  return queue;
+}
+
+/**
+ * @brief Checks if a queue is empty
+ * 
+ * @param queue The pointer to a queue structure
+ * @return true if the queue is empty
+ */
+bool isEmpty(Queue* queue) {
+  // Verify that the queue exists
+  if (!queue)
+    return true;
+
+  // Returns whether the index of front of the queue is -1
+  return queue -> front == -1;
+}
+
+/**
+ * @brief Checks if a queue is full
+ * 
+ * @param queue The pointer to a queue structure
+ * @return true if the queue is full
+ */
+bool isFull(Queue* queue) {
+  // Verify that the queue exists
+  if (!queue)
+    return true;
+
+  // Returns whether the index of back of the queue is greater equal to (QUEUE_MAX - 1)
+  return queue -> rear == (QUEUE_MAX - 1);
+}
+
+/**
+ * @brief Add an element into the queue
+ * 
+ * @param The queue pointer to a queue structure
+ * @param element Element to add into the queue
+ */
+void enqueue(Queue* queue, void* element) {
+  // Verify that the queue and element exists and that the queue full
+  if (!queue || !element || isFull(queue))
+    return;
+
+  // Set the index of the first element to 0
+  if (queue -> front == -1)
+    queue -> front = 0;
+
+  // Increment the index of the last element
+  (queue -> rear)++;
+
+  // Append the element into the queue
+  queue -> elements[queue -> rear] = element;
+}
+
+/**
+ * @brief Removes the front element from the queue
+ * 
+ * @param The queue pointer to a queue structure
+ * @return The pointer to the front element
+ */
+void* dequeue(Queue* queue) {
+  // Verify that the queue exists and isn't empty
+  if (!queue || isEmpty(queue))
+    return NULL;
+
+  // Get the value of the front element
+  void* element = queue -> elements[queue -> front];
+
+  // Increment the index of the first element
+  (queue -> front)++;
+
+  // If the queue is now empty, set the index of the first and last elements to -1
+  if ((queue -> front) > (queue -> rear))
+    queue -> front = queue -> rear = -1;
+
+  // Return the saved value of the front element
+  return element;
+}
+
+/**
+ * @brief Get the pointer of the element in the front of the queue without dequeuing it
+ * 
+ * @param queue The pointer to a queue structure
+ * @return The pointer to the front element
+ */
+void* peek(Queue* queue) {
+  // Verify that the queue exists and isn't empty
+  if (!queue || isEmpty(queue))
+    return NULL;
+
+  // Return the value of the front element
+  return queue -> elements[queue -> front];
+}
+
+#endif // QUEUE_IMPLEMENTATION
+
 #ifdef NANITE_IMPLEMENTATION
   #define NANITE_INPUT_IMPLEMENTATION
   #define NANITE_RENDER_IMPLEMENTATION
@@ -191,6 +317,22 @@ static void processInput(void) {
 #define NANITE_RENDER_INCLUDE
 
 /**
+ * @brief The Entity structure
+ */
+typedef struct Entity {
+  char* ID;
+  float position[3];
+} Entity;
+
+// Render queues
+static Queue* entities;
+
+/**
+ * @brief Creates a new entity and enqueues it
+ */
+void createEntity(char* id, float position[3]);
+
+/**
  * @brief Initialize OpenGL
  */
 void initialize(void);
@@ -207,6 +349,27 @@ void render(SDL_Window* window);
 #ifdef NANITE_RENDER_IMPLEMENTATION
 
 /**
+ * @brief Creates a new entity and enqueues it
+ */
+void createEntity(char* id, float position[3]) {
+  // Verifies the id and position exist
+  if (!id || !position)
+    return;
+
+  // Creates an Entity pointer
+  Entity* entity = (Entity*) malloc(sizeof(Entity));
+
+  // Sets entity data
+  entity -> ID = id;
+  entity -> position[0] = position[0];
+  entity -> position[1] = position[1];
+  entity -> position[2] = position[2];
+
+  // Enqueues the entity into the entity queue
+  enqueue(entities, entity);
+}
+
+/**
  * @brief Initialize OpenGL
  */
 void initialize(void) {
@@ -215,6 +378,9 @@ void initialize(void) {
   GLenum glewError = glewInit();
   if (glewError != GLEW_OK)
     error(strcat("GLEW Failed to Initialize!\n> ", glewGetErrorString(glewInit())));
+
+  // Initialize render queues
+  entities = createQueue();
 }
 
 /**
