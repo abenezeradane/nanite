@@ -175,6 +175,27 @@ void* peek(Queue* queue) {
 
 #endif // QUEUE_IMPLEMENTATION
 
+#ifndef HASHMAP_IMPLEMENTATION
+#define HASHMAP_IMPLEMENTATION
+
+/**
+ * @brief The HashMap structure
+ */
+typedef struct HashMap {
+
+} HashMap;
+
+/**
+ * @brief Create an empty hash map
+ * 
+ * @return A hash map pointer if successful, NULL if it isn't
+ */
+HashMap* createHashMap(void) {
+  return NULL;
+}
+
+#endif // HASHMAP_IMPLEMENTATION
+
 #ifdef NANITE_IMPLEMENTATION
   #define NANITE_INPUT_IMPLEMENTATION
   #define NANITE_RENDER_IMPLEMENTATION
@@ -319,18 +340,37 @@ static void processInput(void) {
 /**
  * @brief The Entity structure
  */
-typedef struct Entity {
-  char* ID;
+typedef struct Entity {  
+  const char* ID;
   float position[3];
 } Entity;
 
+/**
+ * @brief The Shader structure
+ */
+typedef struct Shader {
+  GLuint program;
+  GLuint vao, vbo, ebo;
+} Shader;
+
 // Render queues
-static Queue* entities;
+static HashMap* entities;
+static Queue* shaders;
 
 /**
  * @brief Creates a new entity and enqueues it
+ * 
+ * @param id A string containing the entity's id
+ * @param position The position of the entity on the screen
  */
-void createEntity(char* id, float position[3]);
+void createEntity(const char* id, float position[3]);
+
+/**
+ * @brief Updates the position of an entity
+ * 
+ * @param position
+ * 
+ */
 
 /**
  * @brief Initialize OpenGL
@@ -350,8 +390,11 @@ void render(SDL_Window* window);
 
 /**
  * @brief Creates a new entity and enqueues it
+ * 
+ * @param id A string containing the entity's id
+ * @param position The position of the entity on the screen
  */
-void createEntity(char* id, float position[3]) {
+void createEntity(const char* id, float position[3]) {
   // Verifies the id and position exist
   if (!id || !position)
     return;
@@ -365,8 +408,8 @@ void createEntity(char* id, float position[3]) {
   entity -> position[1] = position[1];
   entity -> position[2] = position[2];
 
-  // Enqueues the entity into the entity queue
-  enqueue(entities, entity);
+  // Appends the entity into the entity map
+  // insert(entities, entity);
 }
 
 /**
@@ -380,7 +423,8 @@ void initialize(void) {
     error(strcat("GLEW Failed to Initialize!\n> ", glewGetErrorString(glewInit())));
 
   // Initialize render queues
-  entities = createQueue();
+  entities = createHashMap();
+  shaders = createQueue();
 }
 
 /**
