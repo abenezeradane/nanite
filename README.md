@@ -82,8 +82,9 @@ int WinMain(void) {
 }
 
 static void load(void) {
-  // Create a shader
-  createShader("shaders/basic.vert", "shaders/basic.frag");
+  // Create an entity and a shader
+  createEntity("Entity", (float[3]) {0.0f, 0.0f, 0.0f});
+  createShader("Entity", "shaders/basic.vert", "shaders/basic.frag");
 }
 ```
 
@@ -108,6 +109,6 @@ static void load(void) {
 * [Metal](https://developer.apple.com/metal/Metal.html)
 * [Direct3D](https://www.microsoft.com/en-us/download/details.aspx?id=55653)
 
-### Dependencies
+### Current Dependencies
 * [SDL2](https://www.libsdl.org/release/)
 * [GLEW](https://glew.sourceforge.net/basic.html)
