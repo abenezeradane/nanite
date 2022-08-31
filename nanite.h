@@ -442,9 +442,9 @@ typedef struct Entity {
  * @brief The Shader structure
  */
 typedef struct Shader {
+  char* entityID;
   GLuint program;
   GLuint vao, vbo, ebo;
-  Entity* entity;
 } Shader;
 
 // Render field variables
@@ -498,11 +498,11 @@ void updateEntityPosition(char* ID, float delta[3]);
 /**
  * @brief Creates a new shader and enqueues it
  * 
- * @param entity Pointer to an entity
+ * @param entityID Entity id
  * @param vertFile Vertex shader filename
  * @param fragFile Fragment shader filename
  */
-void createShader(Entity* entity, const char* vertFile, const char* fragFile);
+void createShader(char* entityID, const char* vertFile, const char* fragFile);
 
 /**
  * @brief Initialize OpenGL
@@ -604,17 +604,18 @@ void updateEntityPosition(char* ID, float delta[3]) {
 /**
  * @brief Creates a new shader and enqueues it
  * 
- * @param entity Pointer to an entity
+ * @param entityID Entity id
  * @param vertFile Vertex shader filename
  * @param fragFile Fragment shader filename
  */
-void createShader(Entity* entity, const char* vertFile, const char* fragFile) {
+void createShader(char* entityID, const char* vertFile, const char* fragFile) {
   // Verify that the entity and filenames exist
-  if (!entity || !vertFile || !fragFile)
+  if (!entityID || !vertFile || !fragFile)
     return;
 
   // Create the shader
   Shader* shader = (Shader*) malloc(sizeof(Shader));
+  shader -> entityID = entityID;
 
   // Generate the vertex array
   glGenVertexArrays(1, &(shader -> vao));
@@ -764,7 +765,7 @@ void render(SDL_Window* window) {
         error("Failed to use shader program!");
 
       // Set the shader position.
-      glUniform3fv(glGetUniformLocation(shader -> program, "position"), 1, shader -> entity -> position);
+      glUniform3fv(glGetUniformLocation(shader -> program, "position"), 1, getEntityPosition(shader -> entityID));
       if (glGetError() != GL_NO_ERROR)
         error("Failed to set shader position!");
 
