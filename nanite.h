@@ -21,7 +21,7 @@
  * @param filename The filename to load.
  * @return char* The file contents.
  */
-char* readfile(char* filename) {
+char* readfile(const char* filename) {
   FILE* file = fopen(filename, "r");
   if (!file)
     return NULL;
@@ -112,6 +112,26 @@ bool isFull(Queue* queue) {
 }
 
 /**
+ * @brief Get the capacity of the queue
+ * 
+ * @param queue The pointer to a queue structure
+ * @return The size of the queue
+ */
+unsigned int queueSize(Queue* queue) {
+  // Verify that the queue exists
+  if (!queue)
+    return true;
+
+  // Return the size of the queue
+  if (isEmpty(queue))           
+    return 0;                     // Return 0 if the queue is empty
+  else if (isFull)
+    return QUEUE_MAX;             // Return QUEUE_MAX if the queue is full
+  else
+    return (queue -> rear) + 1;   // Return the difference between front and rear index + 1
+}
+
+/**
  * @brief Add an element into the queue
  * 
  * @param The queue pointer to a queue structure
@@ -178,12 +198,10 @@ void* peek(Queue* queue) {
 #ifndef HASHMAP_IMPLEMENTATION
 #define HASHMAP_IMPLEMENTATION
 
-/**
- * @brief The HashMap structure
- */
-typedef struct HashMap {
+#define MAP_MAX 2048
 
-} HashMap;
+// Define HashMap
+typedef void** HashMap;
 
 /**
  * @brief Create an empty hash map
@@ -191,7 +209,82 @@ typedef struct HashMap {
  * @return A hash map pointer if successful, NULL if it isn't
  */
 HashMap* createHashMap(void) {
-  return NULL;
+  return (HashMap*) malloc(sizeof(HashMap) * MAP_MAX);
+}
+
+/**
+ * @brief Hash a string
+ * 
+ * @param key String to hash
+ * @return An unsigned int for the hash code
+ */
+unsigned int hash(char* key) {
+  // Calculate the alpha by the sum of ASCII values of characters multiplied by their respective order in the string
+  register unsigned int itr, alpha = 0;
+  for (itr = 0; itr < strlen(key); itr++)
+    alpha += ((int) key[itr]) * (itr + 1);
+
+  // Return the modulus of the alpha and a prime number
+  return alpha % 2069;
+}
+
+/**
+ * @brief Insert an element into the hash map
+ * 
+ * @param map The hash map
+ * @param key The key to the element
+ * @param element The element to be inserted
+ */
+void insert(HashMap* map, char* key, void* element) {
+  // Verify that the map, the key, and the element exist
+  if (!map || !key || !element)
+    return;
+
+  // Get the hash code of the key
+  unsigned int index = hash(key);
+
+  // Insert the element at the index value (exit if collision)
+  if (!map[index])
+    map[index] = element;
+  else
+    return;
+}
+
+/**
+ * @brief Search for an element into the hash map
+ * 
+ * @param map The hash map
+ * @param key The key to the element
+ * @return The pointer to the element in the hash map
+ */
+void* search(HashMap* map, char* key) {
+  // Verify that the map and the key exist
+  if (!map || !key)
+    return NULL;
+
+  // Get the hash code of the key
+  unsigned int index = hash(key);
+
+  // Return the element in the hash map at that index
+  return map[index];
+}
+
+/**
+ * @brief Delete an element from the hash map
+ * 
+ * @param map The hash map
+ * @param key The key to the element
+ */
+void delete(HashMap* map, char* key) {
+  // Verify that the map and the key exist
+  if (!map || !key)
+    return;
+
+  // Get the hash code of the key
+  unsigned int index = hash(key);
+
+  // Make the element at that index NULL
+  map[index] = NULL;
 }
 
 #endif // HASHMAP_IMPLEMENTATION
@@ -351,26 +444,65 @@ typedef struct Entity {
 typedef struct Shader {
   GLuint program;
   GLuint vao, vbo, ebo;
+  Entity* entity;
 } Shader;
 
-// Render queues
-static HashMap* entities;
-static Queue* shaders;
+// Render field variables
+static Queue* shaders;              // Queue of living shaders
+static HashMap* entities;           // HashMap of living entities
+
+static float vertices[] = {         // The vertices of the triangle.
+   0.10f,  0.10f, 0.00f,            // top right
+   0.10f, -0.10f, 0.00f,            // bottom right
+  -0.10f, -0.10f, 0.00f,            // bottom left
+  -0.10f,  0.10f, 0.00f             // top left 
+};
+
+static unsigned int indices[] = {   // The indices of the triangles
+  0, 1, 3,                          // first Triangle
+  1, 2, 3                           // second Triangle
+};
 
 /**
- * @brief Creates a new entity and enqueues it
+ * @brief Creates a new entity and appends it
  * 
- * @param id A string containing the entity's id
+ * @param ID A string containing the entity's id
  * @param position The position of the entity on the screen
  */
-void createEntity(const char* id, float position[3]);
+void createEntity(char* ID, float position[3]);
 
 /**
- * @brief Updates the position of an entity
+ * @brief Get the pointer of an entity from it's ID
  * 
- * @param position
- * 
+ * @param ID An entity ID
+ * @return A pointer to the entity
  */
+Entity* getEntity(char* ID);
+
+/**
+ * @brief Get entity position
+ * 
+ * @param ID The entity ID
+ * @return An array containing the entity's coordinates
+ */
+float* getEntityPosition(char* ID);
+
+/**
+ * @brief Update entity position
+ * 
+ * @param ID The entity ID
+ * @param delta The changed in position
+ */
+void updateEntityPosition(char* ID, float delta[3]);
+
+/**
+ * @brief Creates a new shader and enqueues it
+ * 
+ * @param entity Pointer to an entity
+ * @param vertFile Vertex shader filename
+ * @param fragFile Fragment shader filename
+ */
+void createShader(Entity* entity, const char* vertFile, const char* fragFile);
 
 /**
  * @brief Initialize OpenGL
@@ -391,25 +523,202 @@ void render(SDL_Window* window);
 /**
  * @brief Creates a new entity and enqueues it
  * 
- * @param id A string containing the entity's id
+ * @param ID A string containing the entity's id
  * @param position The position of the entity on the screen
  */
-void createEntity(const char* id, float position[3]) {
-  // Verifies the id and position exist
-  if (!id || !position)
+void createEntity(char* ID, float position[3]) {
+  // Verify that the id and position exist
+  if (!ID || !position)
     return;
 
   // Creates an Entity pointer
   Entity* entity = (Entity*) malloc(sizeof(Entity));
 
   // Sets entity data
-  entity -> ID = id;
+  entity -> ID = ID;
   entity -> position[0] = position[0];
   entity -> position[1] = position[1];
   entity -> position[2] = position[2];
 
   // Appends the entity into the entity map
-  // insert(entities, entity);
+  insert(entities, ID, entity);
+}
+
+/**
+ * @brief Get the pointer of an entity from it's ID
+ * 
+ * @param ID An entity ID
+ * @return A pointer to the entity
+ */
+Entity* getEntity(char* ID) {
+  // Verifies the id exists
+  if (!ID)
+    return NULL;
+
+  // Search the hash map and return the result
+  return search(entities, ID);
+}
+
+/**
+ * @brief Get entity position
+ * 
+ * @param ID The entity ID
+ * @return An array containing the entity's coordinates
+ */
+float* getEntityPosition(char* ID) {
+  // Verifies the id exists
+  if (!ID)
+    return NULL;
+
+  // Get the entity from the hash map, if it exists
+  Entity* entity = getEntity(ID);
+  if (!entity)
+    return NULL;
+
+  // Return the entity's position
+  return (float[3]) {entity -> position[0], entity -> position[1], entity -> position[2]};
+}
+
+/**
+ * @brief Update entity position
+ * 
+ * @param ID The entity ID
+ * @param delta The changed in position
+ */
+void updateEntityPosition(char* ID, float delta[3]) {
+  // Verify that the id and delta exist
+  if (!ID || !delta)
+    return;
+
+  // Get the entity from the hash map, if it exists
+  Entity* entity = getEntity(ID);
+  if (!entity)
+    return;
+
+  // Update the entity's position
+  entity -> position[0] += delta[0];
+  entity -> position[1] += delta[1];
+  entity -> position[2] += delta[2];
+}
+
+/**
+ * @brief Creates a new shader and enqueues it
+ * 
+ * @param entity Pointer to an entity
+ * @param vertFile Vertex shader filename
+ * @param fragFile Fragment shader filename
+ */
+void createShader(Entity* entity, const char* vertFile, const char* fragFile) {
+  // Verify that the entity and filenames exist
+  if (!entity || !vertFile || !fragFile)
+    return;
+
+  // Create the shader
+  Shader* shader = (Shader*) malloc(sizeof(Shader));
+
+  // Generate the vertex array
+  glGenVertexArrays(1, &(shader -> vao));
+  if (shader -> vao == 0)
+    error("Failed to create vertex array object!");
+
+    // Create the vertex array object.
+  glGenVertexArrays(1, &(shader -> vao));
+  if (shader -> vao == 0)
+    error("Failed to create vertex array object!");
+
+  // Create the vertex buffer object.
+  glGenBuffers(1, &(shader -> vbo));
+  if (shader -> vbo == 0)
+    error("Failed to create vertex buffer object!");
+
+  // Create the element buffer object.
+  glGenBuffers(1, &(shader -> ebo));
+  if (shader -> ebo == 0)
+    error("Failed to create element buffer object!");
+
+  // Bind the vertex array object.
+  glBindVertexArray(shader -> vao);
+
+  // Bind the vertex buffer object.
+  glBindBuffer(GL_ARRAY_BUFFER, shader -> vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to bind vertex buffer object!");
+
+  // Bind the element buffer object.
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shader -> ebo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to bind element buffer object!");
+
+  // Set the vertex attribute pointers.
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+
+  // Create the vertex shader.
+  GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
+  if (vertShader == 0)
+    error("Failed to create vertex shader!");
+
+  // Load the vertex shader.
+  char* vertSource = readfile(vertFile);
+  if (vertSource == NULL)
+    error("Failed to read vertex shader file!");
+
+  // Compile the vertex shader.
+  glShaderSource(vertShader, 1, (const char**) &vertSource, NULL);
+  glCompileShader(vertShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to compile vertex shader!");
+
+  // Create the fragment shader.
+  GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+  if (fragShader == 0)
+    error("Failed to create fragment shader!");
+
+  // Load the fragment shader.
+  char* fragSource = readfile(fragFile);
+  if (fragSource == NULL)
+    error("Failed to read fragment shader file!");
+
+  // Compile the fragment shader.
+  glShaderSource(fragShader, 1, (const char**) &fragSource, NULL);
+  glCompileShader(fragShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to compile fragment shader!");
+
+  // Create the shader program.
+  shader -> program = glCreateProgram();
+  if (shader -> program == 0)
+    error("Failed to create shader program!");
+
+  // Attach the vertex shader.
+  glAttachShader(shader -> program, vertShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to attach vertex shader!");
+
+  // Attach the fragment shader.
+  glAttachShader(shader -> program, fragShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to attach fragment shader!");
+
+  // Link the shader program.
+  glLinkProgram(shader -> program);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to link shader program!");
+
+  // Delete the vertex shader.
+  glDeleteShader(vertShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to delete vertex shader!");
+
+  // Delete the fragment shader.
+  glDeleteShader(fragShader);
+  if (glGetError() != GL_NO_ERROR)
+    error("Failed to delete fragment shader!");
+
+  // Add shader to queue
+  enqueue(shaders, shader);
 }
 
 /**
@@ -422,9 +731,9 @@ void initialize(void) {
   if (glewError != GLEW_OK)
     error(strcat("GLEW Failed to Initialize!\n> ", glewGetErrorString(glewInit())));
 
-  // Initialize render queues
-  entities = createHashMap();
+  // Initialize render field variables
   shaders = createQueue();
+  entities = createHashMap();
 }
 
 /**
@@ -443,7 +752,36 @@ void render(SDL_Window* window) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Render the shaders.
-  // ...
+  if (!isEmpty(shaders)) {  // Verify that the shader queue isn't empty
+    register int itr;
+    for (itr = 0; itr < queueSize(shaders); itr++) {
+      // Dequeue the shader
+      Shader* shader = dequeue(shaders);
+
+      // Use the shader program
+      glUseProgram(shader -> program);
+      if (glGetError() != GL_NO_ERROR)
+        error("Failed to use shader program!");
+
+      // Set the shader position.
+      glUniform3fv(glGetUniformLocation(shader -> program, "position"), 1, shader -> entity -> position);
+      if (glGetError() != GL_NO_ERROR)
+        error("Failed to set shader position!");
+
+      // Bind the vertex array object.
+      glBindVertexArray(shader -> vao);
+      if (glGetError() != GL_NO_ERROR)
+        error("Failed to bind vertex array object!");
+      
+      // Draw the triangles.
+      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+      if (glGetError() != GL_NO_ERROR)
+        error("Failed to draw elements!");
+
+      // Enqueue the shader
+      enqueue(shaders, shader);
+    }
+  }
 
   // Swap the buffers.
   SDL_GL_SwapWindow(window);
