@@ -1,54 +1,113 @@
 ## nanite
 > A minimal, single-header, implementation for window creation, input handling and graphics rendering
 
-**nanite** is an SDL2 and OpenGL application implementation I use whenever I am working with SDL2.
+**Nanite** is a minimal all-in-one library for creating and rendering windows in a cross-platform manner, specifically for use in **nano**, a minimal cross-platform game engine written in **C**. Nanite is designed to be used as a single-header library, and is not intended to be used as a standalone application. Specifically, it does not include any user interface or mathematical functionality. It is intended to be used as a base for other libraries and is recommended that specific use cases be designed and implemented separately (e.g. a custom rendering pipeline, a custom input handling/mapping, etc.).
 
 ### Features
-#### Currently Implemented
-- [x] Window Creation
-- [x] Basic Input Handling
-- [x] Simple Shader Rendering
+#### Window Creation
+* Create a window with a title and dimensions
+* Specify window attributes (e.g. fullscreen, vsync, etc)
+* Specify the step function (which is ran every frame)
+* Specify the load function (which is window creation)
 
-#### Planned Features
-- [ ] Simple Texture Rendering
-- [ ] Window Management (Resize, Maximize, Minimize, etc)
-- [ ] Robust Input Handling w/ Input Mapping
-- [ ] Robust Texture Rendering
-- [ ] Robust Shader Rendering
-- [ ] GLFW and SFML Support
-- [ ] Vulkan, Metal, and D3D12 Support
-
-### Usage
-Nanite is a single-header library, so just drop `nanite.h` into your project to get started/.
 ```c
+#define NANITE_IMPLEMENTATION
+#include "nanite.h"
+
 /**
- * Simple Implementation
+ * @brief Simple Implementation
  */
-#define FULL_NANITE_IMPLEMENTATION
+int WinMain(void) {
+  // Specify window attributes
+  Application app = {
+    .title = "Hello World",
+    .width = 640,
+    .height = 480,
+
+    .vsync = true,
+    .fullscreen = false,
+  };
+
+  run(&app);
+  return 0;
+}
+```
+
+#### Basic Input Handling
+* Handle keyboard input
+* Handle window close events
+
+```c
+#define NANITE_IMPLEMENTATION
+#include "nanite.h"
+
+static void frame(void);
+
+/**
+ * @brief Simple Implementation
+ */
+static Application app;
+int WinMain(void) {
+  // Specify the step function (which is ran every frame)
+  app.step = frame;
+  run(&app);
+  return 0;
+}
+
+static void frame(void) {
+  // Exit if 'ESCAPE' is pressed
+  if (keypress(KEY_ESCAPE))
+    app.running = false;
+}
+```
+
+#### Rendering
+* Render a simple shader
+
+```c
+#define NANITE_IMPLEMENTATION
 #include "nanite.h"
 
 static void load(void);
-static void frame(void);
 
+/**
+ * @brief Simple Implementation
+ */
 static Application app;
-int WinMain(int argc, const char *argv[]) {
+int WinMain(void) {
+  // Specify the load function (which is window creation)
   app.load = load;
-  app.step = frame;
-
-  start(&app);
+  run(&app);
   return 0;
 }
 
 static void load(void) {
-  
-}
-
-static void frame(void) {
-  if (keypress(KEY_ESCAPE))
-    app.running = true;
+  // Create a shader
+  createShader("shaders/basic.vert", "shaders/basic.frag");
 }
 ```
 
+### Planned Features
+#### Window Management
+* Update window attributes (e.g. title, dimensions, vsync, etc)
+
+#### Input Handling
+* Handle multiple input sources (e.g. keyboard, mouse, gamepad, etc)
+* Implement input mapping (e.g. keyboard mapping, gamepad mapping, etc)
+
+#### Rendering
+* Render a texture
+* Render a shader with multiple textures
+
+#### Window Creation Library
+* [GLFW](https://www.glfw.org/)
+* [SFML](http://www.sfml-dev.org/)
+
+#### Graphics Library
+* [Vulkan](https://www.khronos.org/vulkan/index.html)
+* [Metal](https://developer.apple.com/metal/Metal.html)
+* [Direct3D](https://www.microsoft.com/en-us/download/details.aspx?id=55653)
+
 ### Dependencies
-- [SDL2](https://www.libsdl.org/)
-- [GLEW](http://glew.sourceforge.net/)
+* [SDL2](https://www.libsdl.org/release/)
+* [GLEW](https://glew.sourceforge.net/basic.html)
