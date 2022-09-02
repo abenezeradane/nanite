@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -642,13 +643,13 @@ void createShader(char* entityID, const char* vertFile, const char* fragFile) {
 
   // Bind the vertex buffer object.
   glBindBuffer(GL_ARRAY_BUFFER, shader -> vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
   if (glGetError() != GL_NO_ERROR)
     error("Failed to bind vertex buffer object!");
 
   // Bind the element buffer object.
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shader -> ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
   if (glGetError() != GL_NO_ERROR)
     error("Failed to bind element buffer object!");
 
