@@ -8,7 +8,7 @@ static void load(void);
  */
 static Application app;
 int WinMain(void) {
-  // Specify the load function (which is window creation)
+  // Specify the load function (which is ran on window creation)
   app.load = load;
   run(&app);
   return 0;
