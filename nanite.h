@@ -436,7 +436,10 @@ static void processInput(void) {
  */
 typedef struct Entity {  
   const char* ID;
+  int width, height;
   float position[3];
+  float vertices[12];
+  unsigned int indices[6];
 } Entity;
 
 /**
@@ -452,25 +455,14 @@ typedef struct Shader {
 static Queue* shaders;              // Queue of living shaders
 static HashMap* entities;           // HashMap of living entities
 
-static float vertices[] = {         // The vertices of the triangle.
-   0.10f,  0.10f, 0.00f,            // top right
-   0.10f, -0.10f, 0.00f,            // bottom right
-  -0.10f, -0.10f, 0.00f,            // bottom left
-  -0.10f,  0.10f, 0.00f             // top left 
-};
-
-static unsigned int indices[] = {   // The indices of the triangles
-  0, 1, 3,                          // first Triangle
-  1, 2, 3                           // second Triangle
-};
-
 /**
  * @brief Creates a new entity and appends it
  * 
  * @param ID A string containing the entity's id
+ * @param dimentions The width and height of the entity
  * @param position The position of the entity on the screen
  */
-void createEntity(char* ID, float position[3]);
+void createEntity(char* ID, int dimensions[2], float position[3]);
 
 /**
  * @brief Get the pointer of an entity from it's ID
@@ -525,21 +517,46 @@ void render(SDL_Window* window);
  * @brief Creates a new entity and enqueues it
  * 
  * @param ID A string containing the entity's id
+ * @param dimensions The width and height of the entity
  * @param position The position of the entity on the screen
  */
-void createEntity(char* ID, float position[3]) {
+void createEntity(char* ID, int dimensions[2], float position[3]) {
   // Verify that the id and position exist
-  if (!ID || !position)
+  if (!ID || !dimensions || !position)
     return;
 
   // Creates an Entity pointer
   Entity* entity = (Entity*) malloc(sizeof(Entity));
 
-  // Sets entity data
+  // Sets entity ID
   entity -> ID = ID;
+
+  // Set entity dimensions
+  entity -> width = dimensions[0];
+  entity -> height = dimensions[1];
+
+  // Set entity position
   entity -> position[0] = position[0];
   entity -> position[1] = position[1];
   entity -> position[2] = position[2];
+
+  // Set entity verticies
+  entity -> vertices[0]  =  (entity -> width) * (1.0f / 20.0f) / 2;     // Top right vertex x-pos
+  entity -> vertices[1]  =  (entity -> height) * (1.0f / 15.0f) / 2;    // Top right vertex y-pos
+  entity -> vertices[3]  =  (entity -> width) * (1.0f / 20.0f) / 2;     // Bottom right vertex x-pos
+  entity -> vertices[4]  = -(entity -> height) * (1.0f / 15.0f) / 2;    // Bottom right vertex y-pos
+  entity -> vertices[6]  = -(entity -> width) * (1.0f / 20.0f) / 2;     // Bottom left vertex x-pos
+  entity -> vertices[7]  = -(entity -> height) * (1.0f / 15.0f) / 2;    // Bottom left vertex y-pos
+  entity -> vertices[9]  = -(entity -> width) * (1.0f / 20.0f) / 2;     // Top left vertex x-pos
+  entity -> vertices[10] =  (entity -> height) * (1.0f / 15.0f) / 2;    // Top left vertex y-pos
+
+  // Set entity indices
+  entity -> indices[0] = 0;
+  entity -> indices[1] = 1;
+  entity -> indices[2] = 3;
+  entity -> indices[3] = 1;
+  entity -> indices[4] = 2;
+  entity -> indices[5] = 3;
 
   // Appends the entity into the entity map
   insert(entities, ID, entity);
@@ -643,13 +660,13 @@ void createShader(char* entityID, const char* vertFile, const char* fragFile) {
 
   // Bind the vertex buffer object.
   glBindBuffer(GL_ARRAY_BUFFER, shader -> vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(getEntity(entityID) -> vertices), getEntity(entityID) -> vertices, GL_DYNAMIC_DRAW);
   if (glGetError() != GL_NO_ERROR)
     error("Failed to bind vertex buffer object!");
 
   // Bind the element buffer object.
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shader -> ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(getEntity(entityID) -> indices), getEntity(entityID) -> indices, GL_DYNAMIC_DRAW);
   if (glGetError() != GL_NO_ERROR)
     error("Failed to bind element buffer object!");
 

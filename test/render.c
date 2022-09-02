@@ -16,6 +16,6 @@ int WinMain(void) {
 
 static void load(void) {
   // Create an entity and a shader
-  createEntity("Entity", (float[3]) {0.0f, 0.0f, 0.0f});
+  createEntity("Entity", (int[2]) {16, 16}, (float[3]) {0.0f, 0.0f, 0.0f});
   createShader("Entity", "shaders/basic.vert", "shaders/basic.frag");
 }
