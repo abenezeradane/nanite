@@ -92,7 +92,7 @@ static void load(void) {
 
 ### Planned Features
 #### Input Handling
-* Handle multiple input sources (e.g. keyboard, mouse, gamepad, etc)
+* Handle multiple input sources (e.g. mouse, gamepad, etc)
 * Implement input mapping (e.g. keyboard mapping, gamepad mapping, etc)
 
 #### Rendering
