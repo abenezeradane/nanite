@@ -9,6 +9,8 @@
 * Specify window attributes (e.g. fullscreen, vsync, etc)
 * Specify the step function (which is ran every frame)
 * Specify the load function (which is window creation)
+* Update window attributes (e.g. title, dimensions, vsync, etc)
+* Close the application
 
 ```c
 #define NANITE_IMPLEMENTATION
@@ -83,15 +85,12 @@ int WinMain(void) {
 
 static void load(void) {
   // Create an entity and a shader
-  createEntity("Entity", (int[2]) {16, 16}, (float[3]) {0.0f, 0.0f, 0.0f});
+  createEntity("Entity", (int[2]) {4, 4}, (float[3]) {0.0f, 0.0f, 0.0f});
   createShader("Entity", "shaders/basic.vert", "shaders/basic.frag");
 }
 ```
 
 ### Planned Features
-#### Window Management
-* Update window attributes (e.g. title, dimensions, vsync, etc)
-
 #### Input Handling
 * Handle multiple input sources (e.g. keyboard, mouse, gamepad, etc)
 * Implement input mapping (e.g. keyboard mapping, gamepad mapping, etc)

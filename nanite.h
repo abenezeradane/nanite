@@ -848,6 +848,102 @@ static double time(void);
 void run(Application* app);
 
 /**
+ * @brief Update the application fullscreen state.
+ * 
+ * @param app The application to update.
+ */
+void setFullscreen(Application* app);
+
+/**
+ * @brief Get the application fullscreen state.
+ * 
+ * @param app The application to get the fullscreen state of.
+ * @return The application fullscreen state.
+ */
+bool getFullscreen(Application* app);
+
+/**
+ * @brief Update the application vsync state.
+ * 
+ * @param app The application to update.
+ */
+void setVsync(Application* app);
+
+/**
+ * @brief Get the application vsync state.
+ * 
+ * @param app The application to get the vsync state of.
+ * @return The application vsync state.
+ */
+bool getVsync(Application* app);
+
+/**
+ * @brief Update the application title.
+ * 
+ * @param app The application to update.
+ * @param title The new title.
+ */
+void setTitle(Application* app, char* title);
+
+/**
+ * @brief Get the application title.
+ * 
+ * @param app The application to get the title from.
+ * @return The application title.
+ */
+char* getTitle(Application* app);
+
+/**
+ * @brief Update the application position.
+ * 
+ * @param app The application to update.
+ * @param x The new x position.
+ * @param y The new y position.
+ */
+void setPosition(Application* app, int x, int y);
+
+/**
+ * @brief Get the application position.
+ * 
+ * @param app The application to get the position from.
+ * @return The application position.
+ */
+int* getPosition(Application* app);
+
+/**
+ * @brief Update the application size.
+ * 
+ * @param app The application to update.
+ * @param width The new width.
+ * @param height The new height.
+ */
+void setSize(Application* app, int width, int height);
+
+/**
+ * @brief Get the application size.
+ * 
+ * @param app The application to get the size of.
+ * @return The application size.
+ */
+int* getSize(Application* app);
+
+/**
+ * @brief Update the application fps.
+ * 
+ * @param app The application to update.
+ * @param fps The new fps.
+ */
+void setFps(Application* app, int fps);
+
+/**
+ * @brief Get the application fps.
+ * 
+ * @param app The application to get the fps of.
+ * @return The application fps.
+ */
+int getFps(Application* app);
+
+/**
  * @brief Frees the application.
  * 
  * @param app The application to free.
@@ -988,6 +1084,191 @@ void run(Application* app) {
   }
 
   close(app);
+}
+
+/**
+ * @brief Set the application title.
+ * 
+ * @param app The application to update.
+ * @param title The new title.
+ */
+void setTitle(Application* app, char* title) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  // Check if the title is null.
+  if (!title)
+    error("Title is null.");
+
+  // Set the title.
+  app -> title = title;
+  SDL_SetWindowTitle(app -> window, app -> title);
+}
+
+/**
+ * @brief Get the application title.
+ * 
+ * @param app The application to get the title of.
+ * @return The application title.
+ */
+char* getTitle(Application* app) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  return app -> title;
+}
+
+/**
+ * @brief Set the application position.
+ * 
+ * @param app The application to update.
+ * @param x The new x position.
+ * @param y The new y position.
+ */
+void setPosition(Application* app, int x, int y) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  // Set the position.
+  app -> x = x;
+  app -> y = y;
+  SDL_SetWindowPosition(app -> window, app -> x, app -> y);
+}
+
+/**
+ * @brief Get the application position.
+ * 
+ * @param app The application to get the position of.
+ * @return The application position.
+ */
+int* getPosition(Application* app) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  return (int[2]) { app -> x, app -> y };
+}
+
+/**
+ * @brief Set the application size.
+ * 
+ * @param app The application to update.
+ * @param width The new width.
+ * @param height The new height.
+ */
+void setSize(Application* app, int width, int height) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  // Set the size.
+  app -> width = width;
+  app -> height = height;
+  SDL_SetWindowSize(app -> window, app -> width, app -> height);
+}
+
+/**
+ * @brief Get the application size.
+ * 
+ * @param app The application to get the size of.
+ * @return The application size.
+ */
+int* getSize(Application* app) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  return (int[2]) { app -> width, app -> height };
+}
+
+/**
+ * @brief Set the application fullscreen state.
+ * 
+ * @param app The application to update.
+ */
+void setFullscreen(Application* app) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  // Set the fullscreen state.
+  app -> fullscreen = !(app -> fullscreen);
+  SDL_SetWindowFullscreen(app -> window, app -> fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+}
+
+/**
+ * @brief Get the application fullscreen state.
+ * 
+ * @param app The application to get the fullscreen state of.
+ * @return The application fullscreen state.
+ */
+bool getFullscreen(Application* app) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  return app -> fullscreen;
+}
+
+/**
+ * @brief Set the application vsync state.
+ * 
+ * @param app The application to update.
+ */
+void setVsync(Application* app) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  // Set the vsync state.
+  app -> vsync = !(app -> vsync);
+  SDL_GL_SetSwapInterval(app -> vsync ? 1 : 0);
+}
+
+/**
+ * @brief Get the application vsync state.
+ * 
+ * @param app The application to get the vsync state of.
+ * @return The application vsync state.
+ */
+bool getVsync(Application* app) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  return app -> vsync;
+}
+
+/**
+ * @brief Set the application fps.
+ * 
+ * @param app The application to update.
+ * @param fps The new fps.
+ */
+void setFps(Application* app, int fps) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  // Set the fps.
+  app -> fps = fps;
+}
+
+/**
+ * @brief Get the application fps.
+ * 
+ * @param app The application to get the fps of.
+ * @return The application fps.
+ */
+int getFps(Application* app) {
+  // Check if the application is null.
+  if (!app)
+    error("Application is null.");
+
+  return app -> fps;
 }
 
 /**
