@@ -60,6 +60,10 @@ static void frame(void) {
   // Exit if 'ESCAPE' is pressed
   if (keypress(KEY_ESCAPE))
     app.running = false;
+
+  // Toggle fullscreen if 'F' is pressed
+  if (keypress(KEY_F))
+    setFullscreen(&app);
 }
 ```
 

@@ -419,6 +419,7 @@ static void processInput(void) {
   updateKeystates(state[SDL_SCANCODE_A], &keystate[KEY_A]);
   updateKeystates(state[SDL_SCANCODE_S], &keystate[KEY_S]);
   updateKeystates(state[SDL_SCANCODE_D], &keystate[KEY_D]);
+  updateKeystates(state[SDL_SCANCODE_F], &keystate[KEY_F]);
 
   updateKeystates(state[SDL_SCANCODE_ESCAPE], &keystate[KEY_ESCAPE]);
   updateKeystates(state[SDL_SCANCODE_LSHIFT], &keystate[KEY_LSHIFT]);
