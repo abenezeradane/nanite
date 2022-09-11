@@ -291,25 +291,30 @@ void delete(HashMap* map, char* key) {
 #endif // HASHMAP_IMPLEMENTATION
 
 #ifdef NANITE_IMPLEMENTATION
+  #define NANITE_INPUT_INCLUDE
   #define NANITE_INPUT_IMPLEMENTATION
+  #define NANITE_RENDER_INCLUDE
   #define NANITE_RENDER_IMPLEMENTATION
+  #define NANITE_WINDOW_INCLUDE
   #define NANITE_WINDOW_IMPLEMENTATION
 
   #ifdef NO_NANITE_INPUT
+    #undef NANITE_INPUT_INCLUDE
     #undef NANITE_INPUT_IMPLEMENTATION    
   #endif
 
   #ifdef NO_NANITE_RENDER
+    #undef NANITE_RENDER_INCLUDE
     #undef NANITE_RENDERING_IMPLEMENTATION
   #endif
 
   #ifdef NO_NANITE_WINDOW
+    #undef NANITE_WINDOW_INCLUDE
     #undef NANITE_WINDOW_IMPLEMENTATION
   #endif
 #endif // NANITE_IMPLEMENTATION
 
-#ifndef NANITE_INPUT_INCLUDE
-#define NANITE_INPUT_INCLUDE
+#ifdef NANITE_INPUT_INCLUDE
 
 /**
  * @brief Key enumeration.
@@ -429,8 +434,7 @@ static void processInput(void) {
 
 #endif // NANITE_INPUT_IMPLEMENTATION
 
-#ifndef NANITE_RENDER_INCLUDE
-#define NANITE_RENDER_INCLUDE
+#ifdef NANITE_RENDER_INCLUDE
 
 /**
  * @brief The Entity structure
@@ -809,8 +813,7 @@ void render(SDL_Window* window) {
 
 #endif // NANITE_RENDER_IMPLEMENTATION
 
-#ifndef NANITE_WINDOW_INCLUDE
-#define NANITE_WINDOW_INCLUDE
+#ifdef NANITE_WINDOW_INCLUDE
 
 /**
  * @brief The application structure.
