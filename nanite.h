@@ -50,6 +50,98 @@ void error(char* msg) {
 
 #endif // MISCELLANEOUS_H
 
+#ifndef BMP_IMPLEMENTATION
+#define BMP_IMPLEMENTATION
+
+/**
+ * @brief Defines the BMP_HEADER structure.
+ */
+typedef struct BMP_HEADER {
+  unsigned char signature[2]; // 2 bytes, 0x42 0x4D
+  unsigned int filesize;      // 4 bytes, 0x36 + (width * height * 3)
+  unsigned int reserved;      // 4 bytes, 0x00
+  unsigned int offset;        // 4 bytes, 0x36
+} BMP_HEADER;
+
+/**
+ * @brief Defines the BMP_INFO structure.
+ */
+typedef struct BMP_INFO {
+  unsigned int headersize;            // 4 bytes, 0x28
+  unsigned int width;                 // 4 bytes, 0x00
+  unsigned int height;                // 4 bytes, 0x00        
+  unsigned short planes;              // 2 bytes, 0x01
+  unsigned short bitdepth;            // 2 bytes, 0x18
+  unsigned int compression;           // 4 bytes, 0x00
+  unsigned int compressedsize;        // 4 bytes, 0x00
+  unsigned int horizontalresolution;  // 4 bytes, 0x00
+  unsigned int verticalresolution;    // 4 bytes, 0x00
+  unsigned int numofcolors;           // 4 bytes, 0x00
+  unsigned int importantcolors;       // 4 bytes, 0x00
+} BMP_INFO;
+
+/**
+ * @brief Defines the BMP_COLORDATA structure.
+ */
+typedef struct BMP_COLORDATA {
+  unsigned char R, G, B;  // 3 bytes, 0x00
+} BMP_COLORDATA;
+
+/**
+ * @brief Defines the BMP structure.
+ */
+typedef struct BMP {
+  BMP_HEADER header;          // 14 bytes
+  BMP_INFO info;              // 40 bytes
+  BMP_COLORDATA* colordata;   // 3 * width * height bytes
+} BMP;
+
+/**
+ * @brief Loads a BMP file into a BMP structure.
+ * 
+ * @param filename The filename of the BMP file.
+ * @return BMP* The BMP structure.
+ */
+BMP* loadBMP(const char* filename) {
+  // Open the file.
+  FILE* file = fopen(filename, "rb");
+  if (!file)
+    error("Failed to open BMP file.");
+
+  // Allocate memory for the BMP structure.
+  BMP* img = (BMP*) malloc(sizeof(BMP));
+  if (!img)
+    error("Failed to allocate memory for BMP structure.");
+
+  // Read the header.
+  if(fread(&(img -> header), sizeof(BMP_HEADER), 1, file) != 1)
+    error("Failed to read BMP header.");
+
+  if (img -> header.signature[0] != 'B' || img -> header.signature[1] != 'M')
+    error("Invalid BMP file, signature mismatch.");
+
+  // Read the info.
+  if (fread(&(img -> info), sizeof(BMP_INFO), 1, file) != 1)
+    error("Failed to read BMP info.");
+
+  // Allocate memory for the color data.
+  img -> colordata = (BMP_COLORDATA*) malloc(img -> info.width * img -> info.height * sizeof(BMP_COLORDATA));
+  if (!img -> colordata)
+    error("Failed to allocate memory for BMP color data.");
+
+  // Read the color data.
+  if (fseek(file, img -> header.offset, SEEK_SET) != 0)
+    error("Failed to seek to BMP color data.");
+  if (fread(img -> colordata, sizeof(BMP_COLORDATA), img -> info.width * img -> info.height, file) != img -> info.width * img -> info.height)
+    error("Failed to read BMP color data.");
+
+  // Close the file and return the BMP structure.
+  fclose(file);
+  return img;
+}
+
+#endif // BMP_IMPLEMENTATION
+
 #ifndef QUEUE_IMPLEMENTATION
 #define QUEUE_IMPLEMENTATION
 
