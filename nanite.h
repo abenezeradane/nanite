@@ -305,7 +305,7 @@ void delete(HashMap* map, char* key) {
 
   #ifdef NO_NANITE_RENDER
     #undef NANITE_RENDER_INCLUDE
-    #undef NANITE_RENDERING_IMPLEMENTATION
+    #undef NANITE_RENDER_IMPLEMENTATION
   #endif
 
   #ifdef NO_NANITE_WINDOW
