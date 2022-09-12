@@ -97,10 +97,11 @@ BMP* loadBMP(const char* filename) {
  * 
  * @param filename The filename of the BMP file.
  * @param bmp The BMP structure.
+ * @return int 0 if successful, 1 if not.
  */
-void saveBMP(const char* filename, BMP* bmp) {
+int saveBMP(const char* filename, BMP* bmp) {
   // Verify the filename and BMP structure.
-  if (!filename || !img) {
+  if (!filename || !bmp) {
     fprintf(stderr, "Error: Invalid filename or BMP structure.\n");
     return 1;
   }
@@ -113,13 +114,13 @@ void saveBMP(const char* filename, BMP* bmp) {
   }
 
   // Write the header to the file.
-  if (fwrite(&img -> header, sizeof(HEADER), 1, file) != 1) {
+  if (fwrite(&(bmp -> header), sizeof(HEADER), 1, file) != 1) {
     fprintf(stderr, "Error: Could not write to file.\n");
     return 1;
   }
 
   // Write the image data to the file.
-  if (fwrite(img -> data, img -> header.imagesize, 1, file) != 1) {
+  if (fwrite(bmp -> data, bmp -> header.imagesize, 1, file) != 1) {
     fprintf(stderr, "Error: Could not write to file.\n");
     return 1;
   }
