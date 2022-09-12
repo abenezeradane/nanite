@@ -89,7 +89,56 @@ typedef struct BMP {
  * @return BMP* The BMP structure.
  */
 BMP* loadBMP(const char* filename) {
-  // TODO: Implement BMP loading.
+  // Verify the filename
+  if (filename == NULL) {
+    fprintf(stderr, "Error: Invalid filename.\n");
+    return NULL;
+  }
+
+  // Open the file.
+  FILE* file = fopen(filename, "rb");
+  if (!file) {
+    fprintf(stderr, "Error: Could not open file.\n");
+    return NULL;
+  }
+
+  // Allocate memory for the BMP structure.
+  BMP* img = (BMP*) malloc(sizeof(BMP));
+  if (!img) {
+    fprintf(stderr, "Error: Could not allocate memory.\n");
+    return NULL;
+  }
+
+  // Read the header into a buffer and verify the signature.
+  unsigned char buffer[sizeof(HEADER)];
+  if (fgets(buffer, sizeof(HEADER), file) == NULL) {
+    fprintf(stderr, "Error: Could not read file.\n");
+    return NULL;
+  }
+
+  // Verify the signature.
+  if (buffer[0] != 'B' || buffer[1] != 'M') {
+    fprintf(stderr, "Error: Invalid signature.\n");
+    return NULL;
+  }
+
+  // Copy the header into the BMP structure.
+  memcpy(&(img -> header), buffer, sizeof(HEADER));
+
+  // Allocate memory for the image data.
+  img -> data = (unsigned char*) malloc(img -> header.imagesize);
+
+  // Read the image data into the buffer.
+  if (fgets(img -> data, img -> header.imagesize, file) == NULL) {
+    fprintf(stderr, "Error: Could not read file.\n");
+    return NULL;
+  }
+
+  // Close the file.
+  fclose(file);
+
+  // Return the BMP structure.
+  return img;
 }
 
 /**
