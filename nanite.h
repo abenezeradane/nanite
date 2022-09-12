@@ -54,46 +54,32 @@ void error(char* msg) {
 #define BMP_IMPLEMENTATION
 
 /**
- * @brief Defines the BMP_HEADER structure.
+ * @brief Defines a 54-byte BMP header.
  */
-typedef struct BMP_HEADER {
-  unsigned char signature[2]; // 2 bytes, 0x42 0x4D
-  unsigned int filesize;      // 4 bytes, 0x36 + (width * height * 3)
-  unsigned int reserved;      // 4 bytes, 0x00
-  unsigned int offset;        // 4 bytes, 0x36
-} BMP_HEADER;
-
-/**
- * @brief Defines the BMP_INFO structure.
- */
-typedef struct BMP_INFO {
-  unsigned int headersize;            // 4 bytes, 0x28
-  unsigned int width;                 // 4 bytes, 0x00
-  unsigned int height;                // 4 bytes, 0x00        
-  unsigned short planes;              // 2 bytes, 0x01
-  unsigned short bitdepth;            // 2 bytes, 0x18
-  unsigned int compression;           // 4 bytes, 0x00
-  unsigned int compressedsize;        // 4 bytes, 0x00
-  unsigned int horizontalresolution;  // 4 bytes, 0x00
-  unsigned int verticalresolution;    // 4 bytes, 0x00
-  unsigned int numofcolors;           // 4 bytes, 0x00
-  unsigned int importantcolors;       // 4 bytes, 0x00
-} BMP_INFO;
-
-/**
- * @brief Defines the BMP_COLORDATA structure.
- */
-typedef struct BMP_COLORDATA {
-  unsigned char R, G, B;  // 3 bytes, 0x00
-} BMP_COLORDATA;
+typedef struct HEADER {
+  unsigned int signature;             // Magic Identifier: 0x4D42
+  unsigned long int filesize;         // The file size in bytes
+  unsigned int reserved;              // Unused reserved bytes
+  unsigned long int dataoffset;       // The offset where the pixel array can be found
+  unsigned long int headersize;       // The size of this header in bytes
+  unsigned long int width;            // The bitmap width in pixels
+  unsigned long int height;           // The bitmap height in pixels
+  unsigned short int planes;          // The number of color planes
+  unsigned short int bitsperpixel;    // The number of bits per pixel
+  unsigned long int compression;      // The compression method being used
+  unsigned long int imagesize;        // The image size in bytes
+  unsigned long int xresolution;      // The horizontal resolution in pixels per meter
+  unsigned long int yresolution;      // The vertical resolution in pixels per meter
+  unsigned long int numcolors;        // The number of colors in the color palette
+  unsigned long int importantcolors;  // The number of important colors used
+} HEADER;
 
 /**
  * @brief Defines the BMP structure.
  */
 typedef struct BMP {
-  BMP_HEADER header;          // 14 bytes
-  BMP_INFO info;              // 40 bytes
-  BMP_COLORDATA* colordata;   // 3 * width * height bytes
+  HEADER header;        // 14 bytes
+  unsigned char* data;  // (4 * WIDTH * HEIGHT) bytes
 } BMP;
 
 /**
@@ -103,41 +89,26 @@ typedef struct BMP {
  * @return BMP* The BMP structure.
  */
 BMP* loadBMP(const char* filename) {
-  // Open the file.
-  FILE* file = fopen(filename, "rb");
-  if (!file)
-    error("Failed to open BMP file.");
+  // TODO: Implement BMP loading.
+}
 
-  // Allocate memory for the BMP structure.
-  BMP* img = (BMP*) malloc(sizeof(BMP));
-  if (!img)
-    error("Failed to allocate memory for BMP structure.");
+/**
+ * @brief Saves a BMP structure into a BMP file.
+ * 
+ * @param filename The filename of the BMP file.
+ * @param bmp The BMP structure.
+ */
+void saveBMP(const char* filename, BMP* bmp) {
+  // TODO: Implement BMP saving.
+}
 
-  // Read the header.
-  if(fread(&(img -> header), sizeof(BMP_HEADER), 1, file) != 1)
-    error("Failed to read BMP header.");
-
-  if (img -> header.signature[0] != 'B' || img -> header.signature[1] != 'M')
-    error("Invalid BMP file, signature mismatch.");
-
-  // Read the info.
-  if (fread(&(img -> info), sizeof(BMP_INFO), 1, file) != 1)
-    error("Failed to read BMP info.");
-
-  // Allocate memory for the color data.
-  img -> colordata = (BMP_COLORDATA*) malloc(img -> info.width * img -> info.height * sizeof(BMP_COLORDATA));
-  if (!img -> colordata)
-    error("Failed to allocate memory for BMP color data.");
-
-  // Read the color data.
-  if (fseek(file, img -> header.offset, SEEK_SET) != 0)
-    error("Failed to seek to BMP color data.");
-  if (fread(img -> colordata, sizeof(BMP_COLORDATA), img -> info.width * img -> info.height, file) != img -> info.width * img -> info.height)
-    error("Failed to read BMP color data.");
-
-  // Close the file and return the BMP structure.
-  fclose(file);
-  return img;
+/**
+ * @brief Frees the memory allocated for a BMP structure.
+ * 
+ * @param img The BMP structure.
+ */
+void freeBMP(BMP* img) {
+  // TODO: Implement BMP freeing.
 }
 
 #endif // BMP_IMPLEMENTATION
