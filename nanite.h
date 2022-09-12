@@ -99,7 +99,36 @@ BMP* loadBMP(const char* filename) {
  * @param bmp The BMP structure.
  */
 void saveBMP(const char* filename, BMP* bmp) {
-  // TODO: Implement BMP saving.
+  // Verify the filename and BMP structure.
+  if (!filename || !img) {
+    fprintf(stderr, "Error: Invalid filename or BMP structure.\n");
+    return 1;
+  }
+
+  // Open the file.
+  FILE* file = fopen(filename, "wb");
+  if (!file) {
+    fprintf(stderr, "Error: Could not open file.\n");
+    return 1;
+  }
+
+  // Write the header to the file.
+  if (fwrite(&img -> header, sizeof(HEADER), 1, file) != 1) {
+    fprintf(stderr, "Error: Could not write to file.\n");
+    return 1;
+  }
+
+  // Write the image data to the file.
+  if (fwrite(img -> data, img -> header.imagesize, 1, file) != 1) {
+    fprintf(stderr, "Error: Could not write to file.\n");
+    return 1;
+  }
+
+  // Close the file.
+  fclose(file);
+
+  // Return 0.
+  return 0;
 }
 
 /**
