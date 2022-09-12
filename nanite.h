@@ -108,7 +108,17 @@ void saveBMP(const char* filename, BMP* bmp) {
  * @param img The BMP structure.
  */
 void freeBMP(BMP* img) {
-  // TODO: Implement BMP freeing.
+  // Verify that the BMP structure is not NULL.
+  if (!img) {
+    fprintf(stderr, "Error: Invalid BMP structure.\n");
+    return;
+  }
+
+  // Free the image data.
+  free(img -> data);
+
+  // Free the BMP structure.
+  free(img);
 }
 
 #endif // BMP_IMPLEMENTATION
